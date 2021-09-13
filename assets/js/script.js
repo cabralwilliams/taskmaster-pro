@@ -45,8 +45,74 @@ var saveTasks = function() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
+//Course Solutions
+$(".list-group").on("click", "p", function() {
+  var text = $(this)
+  .text()
+  .trim();
+  var textInput = $("<textarea>")
+  .addClass("form-control")
+  .val(text);
+  $(this).replaceWith(textInput);
+  textInput.trigger("focus");
+});
 
+$(".list-group").on("blur","textarea", function() {
+  // get the textarea's current value/text
+  var text = $(this)
+    .val()
+    .trim();
 
+  // get the parent ul's id attribute
+  var status = $(this)
+    .closest(".list-group")
+    .attr("id")
+    .replace("list-", "");
+
+  // get the task's position in the list of other li elements
+  var index = $(this)
+    .closest(".list-group-item")
+    .index();
+
+  tasks[status][index].text = text;
+  saveTasks();
+
+  // recreate p element
+  var taskP = $("<p>")
+  .addClass("m-1")
+  .text(text);
+
+  // replace textarea with p element
+  $(this).replaceWith(taskP);
+});
+
+$(".list-group").on("click", "span", function() {
+  var date = $(this).text().trim();
+
+  // create new input element
+  var dateInput = $("<input>")
+    .attr("type", "text")
+    .addClass("form-control")
+    .val(date);
+
+  // swap out elements
+  $(this).replaceWith(dateInput);
+
+  // automatically focus on new element
+  dateInput.trigger("focus");
+});
+
+$(".list-group").on("blur", "input", function() {
+  var date = $(this).val();
+  var taskType = $(this).closest(".list-group").attr("id").replace("list-","");
+  var index = $(this).closest(".list-group-item").index();
+  tasks[taskType][index].date = date;
+  saveTasks();
+
+  //Replace span element
+  var newSpan = $("<span>").addClass("badge badge-primary badge-pill").text(date);
+  $(this).replaceWith(newSpan);
+});
 
 // modal was triggered
 $("#task-form-modal").on("show.bs.modal", function() {
@@ -81,6 +147,67 @@ $("#task-form-modal .btn-primary").click(function() {
     saveTasks();
   }
 });
+
+//My solutions - They worked
+/*
+var oldTaskDesc = "";
+var oldTaskDate = "";
+var editingTask = false;
+//#list-toDo item was clicked
+$("#list-toDo").on("click", "li", function() {
+  if(!editingTask) {
+    var dateLabel = $("<label>");
+    dateLabel.attr("for","taskDateEdit");
+    dateLabel.text("Due Date: ");
+    oldTaskDate = $(this).children("span").text();
+    var textAreaEl1 = $("<textarea>").text(oldTaskDate);
+    textAreaEl1.addClass("form-control");
+    textAreaEl1.attr("name", "taskDateEdit");
+    textAreaEl1.attr("id","taskDateEdit");
+    var descLabel = $("<label>");
+    descLabel.attr("for","descEdit");
+    descLabel.text("Task Description: ");
+    oldTaskDesc = $(this).children("p").text();
+    var textAreaEl2 = $("<textarea>").text(oldTaskDesc);
+    textAreaEl2.addClass("form-control");
+    textAreaEl2.attr("name","descEdit");
+    textAreaEl2.attr("id","descEdit");
+    var buttonEl = $("<button>").addClass("btn btn-primary").attr("onclick","editTask('toDo')");
+    buttonEl.text("Edit Task");
+    $(this).children("span").remove();
+    $(this).children("p").remove();
+    $(this).append(dateLabel);
+    $(this).append(textAreaEl1);
+    $(this).append(descLabel);
+    $(this).append(textAreaEl2);
+    $(this).append(buttonEl);
+    textAreaEl2.trigger("focus");
+    console.log(oldTaskDate);
+    console.log(oldTaskDesc);
+    console.log(this);
+    editingTask = true;
+  }
+});
+
+var editTask = function(inputKey) {
+  var taskIndex = -1;
+  var arr = tasks[inputKey];
+  do {
+    taskIndex++;
+  } while(arr[taskIndex].text !== oldTaskDesc || arr[taskIndex].date !== oldTaskDate);
+  tasks[inputKey][taskIndex].text = $("#descEdit").val();
+  tasks[inputKey][taskIndex].date = $("#taskDateEdit").val();
+  $("#list-" + inputKey).html("");
+  tasks[inputKey].forEach(function(task) {
+    createTask(task.text,task.date,inputKey);
+  });
+  saveTasks();
+  editingTask = false;
+}
+*/
+
+
+
 
 // remove all tasks
 $("#remove-tasks").on("click", function() {
