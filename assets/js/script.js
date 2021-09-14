@@ -1,5 +1,20 @@
 var tasks = {};
 
+var auditTask = function(taskEl) {
+  var rightNow = moment();
+  var dueDate = $(taskEl).find("span").text().trim();
+  console.log(dueDate);
+  var dueDateOb = moment(dueDate, "L").set("hour", 17); //Gets the date-time on the due date
+  taskEl.removeClass("list-group-item-warning list-group-item-danger");
+
+  if(moment().isAfter(dueDateOb)) {
+    //Adds a danger class if the task is overdue
+    $(taskEl).addClass("list-group-item-danger");
+  } else if (Math.abs(moment().diff(dueDateOb, "days")) <= 2) {
+    $(taskEl).addClass("list-group-item-warning");
+  }
+}
+
 var createTask = function(taskText, taskDate, taskList) {
   // create elements that make up a task item
   var taskLi = $("<li>").addClass("list-group-item");
@@ -13,6 +28,8 @@ var createTask = function(taskText, taskDate, taskList) {
   // append span and p element to parent li
   taskLi.append(taskSpan, taskP);
 
+  //Audit the task
+  auditTask(taskLi);
 
   // append to ul list on the page
   $("#list-" + taskList).append(taskLi);
@@ -87,22 +104,28 @@ $(".list-group").on("blur","textarea", function() {
 });
 
 $(".list-group").on("click", "span", function() {
+  // get current text
   var date = $(this).text().trim();
 
   // create new input element
-  var dateInput = $("<input>")
-    .attr("type", "text")
-    .addClass("form-control")
-    .val(date);
+  var dateInput = $("<input>").attr("type", "text").addClass("form-control").val(date);
 
-  // swap out elements
   $(this).replaceWith(dateInput);
 
-  // automatically focus on new element
+  // enable jquery ui datepicker
+  dateInput.datepicker({
+    minDate: 1,
+    onClose: function() {
+      // when calendar is closed, force a "change" event on the `dateInput`
+      $(this).trigger("change");
+    }
+  });
+
+  // automatically bring up the calendar
   dateInput.trigger("focus");
 });
 
-$(".list-group").on("blur", "input", function() {
+$(".list-group").on("change", "input[type='text']", function() {
   var date = $(this).val();
   var taskType = $(this).closest(".list-group").attr("id").replace("list-","");
   var index = $(this).closest(".list-group-item").index();
@@ -112,6 +135,9 @@ $(".list-group").on("blur", "input", function() {
   //Replace span element
   var newSpan = $("<span>").addClass("badge badge-primary badge-pill").text(date);
   $(this).replaceWith(newSpan);
+
+  // Pass task's <li> element into auditTask() to check new due date
+  auditTask($(newSpan).closest(".list-group-item"));
 });
 
 // modal was triggered
@@ -285,3 +311,9 @@ $("#trash").droppable({
     console.log("out");
   }
 });
+
+$("#modalDueDate").datepicker({
+  //Prevents selecting dates in the past? Yes - forces due date of at least one day from now
+  minDate: 1
+});
+
