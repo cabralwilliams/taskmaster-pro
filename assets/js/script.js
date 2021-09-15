@@ -5,7 +5,7 @@ var auditTask = function(taskEl) {
   var dueDate = $(taskEl).find("span").text().trim();
   console.log(dueDate);
   var dueDateOb = moment(dueDate, "L").set("hour", 17); //Gets the date-time on the due date
-  taskEl.removeClass("list-group-item-warning list-group-item-danger");
+  $(taskEl).removeClass("list-group-item-warning list-group-item-danger");
 
   if(moment().isAfter(dueDateOb)) {
     //Adds a danger class if the task is overdue
@@ -254,15 +254,21 @@ $(".card .list-group").sortable({
   tolerance: "pointer",
   helper: "clone",
   activate: function(event) {
+    $(this).addClass("dropover");
+    $(".bottom-trash").addClass("bottom-trash-drag");
     console.log("activate", this);
   },
   deactivate: function(event) {
+    $(this).removeClass("dropover");
+    $(".bottom-trash").removeClass("bottom-trash-drag");
     console.log("deactivate", this);
   },
   over: function(event) {
+    $(event.target).addClass("dropover-active");
     console.log("over", event.target);
   },
   out: function(event) {
+    $(event.target).removeClass("dropover-active");
     console.log("out", event.target);
   },
   update: function(event) {
@@ -301,13 +307,16 @@ $("#trash").droppable({
   accept: ".card .list-group-item",
   tolerance: "touch",
   drop: function(event, ui) {
+    $(".bottom-trash").removeClass("bottom-trash-active");
     console.log("drop");
     ui.draggable.remove();
   },
   over: function(event, ui) {
+    $(".bottom-trash").addClass("bottom-trash-active");
     console.log("over");
   },
   out: function(event, ui) {
+    $(".bottom-trash").removeClass("bottom-trash-active");
     console.log("out");
   }
 });
@@ -317,3 +326,6 @@ $("#modalDueDate").datepicker({
   minDate: 1
 });
 
+setInterval($(".card .list-group-item").each(function(index, el) {
+  auditTask(el);
+}), 30*60*1000);
